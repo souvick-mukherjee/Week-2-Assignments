@@ -33,5 +33,90 @@ const express = require("express")
 const PORT = 3000;
 const app = express();
 // write your logic here, DONT WRITE app.listen(3000) when you're running tests, the tests will automatically start the server
+var users=[];
+app.use(express.json());
 
+app.post('/signup',(req,res)=>{
+  
+  var user=req.body;
+  let userAlreadyExists=false;
+  for(var i=0;i<users.length;i++){
+    if(user.email===users[i].email)
+    {
+      userAlreadyExists=true;
+      break;
+    }
+  }
+  if(!userAlreadyExists)
+  {
+    users.push(user);
+    res.status(201).send("Signup successful");
+  }
+  else{
+    res.status(400).send("Bad request");
+  }
+})
+
+app.post('/login',(req,res)=>{
+
+  var user=req.body;
+  let userFound=null;
+  for(var i=0;i<users.length;i++){
+    if(user.email==users[i].email && user.password==users[i].password)
+    {
+      userFound = users[i];
+    }
+    console.log(userFound.email)
+  }
+  if(userFound)
+  {
+    console.log("User found")
+    
+    res.json(
+      {
+        "firstName" : userFound.firstName,
+        "lastName" : userFound.lastName,
+        "email" : userFound.email
+      }
+    );
+  }
+  else{
+    res.sendStatus(401)
+  }
+})
+
+app.get('/data',(req,res)=>{
+var email=req.headers.email;
+var password=req.headers.password;
+let userFound=false;
+for(var i=0;i<users.length;i++){
+  if(users[i].email===email && users[i].password===password)
+  {
+    userFound=true;
+    break;
+  }
+}
+if(userFound)
+{
+  let usersToReturn=[]
+  for(var i=0;i<users.length;i++){
+    usersToReturn.push({
+      firstName:users[i].firstName,
+      lastName:users[i].lastName,
+      email:users[i].email
+    });
+  }
+  res.json({
+    users : usersToReturn
+  });
+}
+else{
+  res.sendStatus(401);
+}
+
+})
+
+// app.listen(PORT,()=>{
+//   console.log(`server started on port ${PORT}`)
+// })
 module.exports = app;
