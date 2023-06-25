@@ -39,11 +39,92 @@
 
   Testing the server - run `npm run test-todoServer` command in terminal
  */
-const express = require('express');
-const bodyParser = require('body-parser');
+  const express = require('express');
+  const bodyParser = require('body-parser');
+  
+  const app = express();
 
-const app = express();
+  app.use(bodyParser.json());
+  
+  let todos=[];
+  
+  function findIndex(arr,id){
+    for(var i=0;i<arr.length;i++)
+    {
+      if (id===arr[i].id)
+      {
+        return i;
+      }
+    }
+      return -1;  
+  }
+  
+  function deleteAtIndex(arr,id){
+    var newArray=[];
+    for(var i=0;i<arr.length;i++)
+    {
+      if (id!=arr[i].id){
+          newArray.push(arr[i]);
+      }
+    }
+    return newArray;
+  }
+  
+  
+  
+  
+  app.get('/todos',(req,res)=>{
+    
+    res.status(200).json(todos);
+  })
+  
+  app.get('/todos/:id',(req,res)=>{
+    var id=parseInt(req.params.id);
+    var todoIndex=findIndex(todos,id);
+    if(todoIndex===-1)
+    {
+      res.status(404).send();
+    }
+    res.status(200).json(todos[todoIndex]);
+  })
+  
+  app.post('/todos',(req,res)=>{
+    let newTodo={
+      id : Math.floor(Math.random()*1000000),
+      title : req.body.title,
+      completed: false,
+      description : req.body.description
+    }
+    todos.push(newTodo);
+    res.status(201).json(newTodo);
+  })
+  
+  app.put('/todos/:id',(req,res)=>{
+    var todoIndex=findIndex(todos,parseInt(req.params.id));
+    if(todoIndex===-1)
+    {
+      res.status(404).send();
+    }
+  todos[todoIndex].title=req.body.title;
+  todos[todoIndex].completed=req.body.completed;
+  todos[todoIndex].description=req.body.description;
+  res.status(200).send();
+  })
+  
+  app.delete('/todos/:id',(req,res)=>{
+    var todoIndex=findIndex(todos,parseInt(req.params.id));
+    if(todoIndex===-1)
+    {
+      res.status(404).send();
+    }
+    todos=deleteAtIndex(todos,todoIndex);
+    // todos.splice(todoIndex,1);
+    res.status(200).send();
+  })
 
-app.use(bodyParser.json());
-
-module.exports = app;
+  app.all('*',(req,res)=>{
+    res.sendStatus(404);
+  })
+  
+  module.exports = app;
+  
